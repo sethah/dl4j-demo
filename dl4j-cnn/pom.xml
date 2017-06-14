@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>com.cloudera.datascience</groupId>
+    <artifactId>dl4j-cnn-parent</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+  </parent>
+
+  <artifactId>dl4j-cnn</artifactId>
+  <version>1.0.0-SNAPSHOT</version>
+  <packaging>jar</packaging>
+
+  <properties>
+    <spark.version>2.1.0</spark.version>
+    <spark.deps.scope>compile</spark.deps.scope>
+    <dl4j.spark.version>${dl4j.version}_spark_2</dl4j.spark.version>
+    <nd4j.version>${dl4j.version}</nd4j.version>
+    <!-- Change the nd4j.backend property to nd4j-cuda-7.5-platform or nd4j-cuda-8.0-platform to use CUDA GPUs -->
+    <nd4j.backend>nd4j-native-platform</nd4j.backend>
+    <datavec.version>${dl4j.version}</datavec.version>
+    <datavec.spark.version>${dl4j.version}_spark_2</datavec.spark.version>
+  </properties>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>net.alchim31.maven</groupId>
+        <artifactId>scala-maven-plugin</artifactId>
+      </plugin>
+      <plugin>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <configuration>
+          <descriptorRefs>
+            <descriptorRef>jar-with-dependencies</descriptorRef>
+          </descriptorRefs>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+  <dependencies>
+    <dependency>
+      <groupId>com.github.scopt</groupId>
+      <artifactId>scopt_${scala.minor.version}</artifactId>
+    </dependency>
+    <!-- Scala libraries -->
+    <dependency>
+      <groupId>org.scala-lang</groupId>
+      <artifactId>scala-library</artifactId>
+      <scope>${spark.deps.scope}</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.scala-lang</groupId>
+      <artifactId>scalap</artifactId>
+      <scope>${spark.deps.scope}</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.scala-lang</groupId>
+      <artifactId>scala-compiler</artifactId>
+      <scope>${spark.deps.scope}</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.scala-lang</groupId>
+      <artifactId>scala-reflect</artifactId>
+      <scope>${spark.deps.scope}</scope>
+    </dependency>
+    <!-- Scala libraries -->
+    <dependency>
+      <groupId>org.apache.spark</groupId>
+      <artifactId>spark-core_${scala.minor.version}</artifactId>
+      <version>${spark.version}</version>
+      <scope>${spark.deps.scope}</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.spark</groupId>
+      <artifactId>spark-mllib_${scala.minor.version}</artifactId>
+      <version>${spark.version}</version>
+      <scope>${spark.deps.scope}</scope>
+    </dependency>
+
+    <!-- Core DL4J functionality -->
+    <dependency>
+      <groupId>org.deeplearning4j</groupId>
+      <artifactId>deeplearning4j-core</artifactId>
+      <version>${dl4j.version}</version>
+      <scope>${spark.deps.scope}</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.deeplearning4j</groupId>
+      <artifactId>deeplearning4j-nn</artifactId>
+      <version>${dl4j.version}</version>
+      <scope>${spark.deps.scope}</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.deeplearning4j</groupId>
+      <artifactId>dl4j-spark_${scala.minor.version}</artifactId>
+      <version>${dl4j.spark.version}</version>
+      <scope>${spark.deps.scope}</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.deeplearning4j</groupId>
+      <artifactId>deeplearning4j-ui-model</artifactId>
+      <version>${dl4j.version}</version>
+    </dependency>
+
+    <!-- ND4J backend. You need one in every DL4J project. Normally define artifactId as either "nd4j-native-platform" or "nd4j-cuda-7.5-platform" -->
+    <dependency>
+      <groupId>org.nd4j</groupId>
+      <artifactId>nd4j-native-platform</artifactId>
+      <version>${nd4j.version}</version>
+      <scope>${spark.deps.scope}</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.nd4j</groupId>
+      <artifactId>nd4j-native</artifactId>
+      <version>${nd4j.version}</version>
+      <scope>${spark.deps.scope}</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.nd4j</groupId>
+      <artifactId>nd4j-api</artifactId>
+      <version>${nd4j.version}</version>
+      <scope>${spark.deps.scope}</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.nd4j</groupId>
+      <artifactId>nd4j-kryo_${scala.minor.version}</artifactId>
+      <version>${nd4j.version}</version>
+      <scope>${spark.deps.scope}</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.datavec</groupId>
+      <artifactId>datavec-api</artifactId>
+      <version>${datavec.version}</version>
+      <scope>${spark.deps.scope}</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.datavec</groupId>
+      <artifactId>datavec-spark_${scala.minor.version}</artifactId>
+      <version>${datavec.spark.version}</version>
+      <scope>${spark.deps.scope}</scope>
+    </dependency>
+
+    <!-- Image processing -->
+    <dependency>
+      <groupId>org.imgscalr</groupId>
+      <artifactId>imgscalr-lib</artifactId>
+      <version>4.2</version>
+    </dependency>
+
+  </dependencies>
+
+  <!-- Enable this profile with -Pspark-deploy to build a .jar for spark-submit -->
+  <profiles>
+    <profile>
+      <id>spark-deploy</id>
+      <properties>
+        <spark.deps.scope>compile</spark.deps.scope>
+      </properties>
+    </profile>
+    <profile>
+      <id>cloudera</id>
+      <properties>
+        <spark.version>2.1.0.cloudera1</spark.version>
+      </properties>
+      <repositories>
+        <repository>
+          <id>cloudera</id>
+          <url>https://repository.cloudera.com/artifactory/cloudera-repos/</url>
+        </repository>
+      </repositories>
+    </profile>
+  </profiles>
+</project>
