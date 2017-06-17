@@ -4,7 +4,6 @@ import java.io.File
 
 import com.cloudera.datascience.dl4j.cnn.Utils
 import org.apache.spark.sql.{Row, SparkSession}
-import org.apache.spark.{SparkConf, SparkContext}
 import org.deeplearning4j.util.ModelSerializer
 import org.nd4j.linalg.dataset.DataSet
 import org.nd4j.linalg.factory.Nd4j
@@ -32,11 +31,10 @@ object ScoreSparkModel {
 
   def main(args: Array[String]): Unit = {
     val param = Params.parseArgs(args)
-    val sparkConf = new SparkConf().setAppName("score a model")
-    val sc = new SparkContext(sparkConf)
-    sc.hadoopConfiguration.set("mapreduce.input.fileinputformat.input.dir.recursive", "true")
+    val spark = SparkSession.builder().appName("score a model").getOrCreate()
     try {
-      val spark = SparkSession.builder().getOrCreate()
+      val sc = spark.sparkContext
+      sc.hadoopConfiguration.set("mapreduce.input.fileinputformat.input.dir.recursive", "true")
       val restorePath = new File(param.modelPath)
       val restored = ModelSerializer.restoreComputationGraph(restorePath)
       val testRDD = spark.read.parquet(param.dataPath)
@@ -48,7 +46,7 @@ object ScoreSparkModel {
       println(Utils.prettyPrintEvaluationStats(eval))
 
     } finally {
-      sc.stop()
+      spark.stop()
     }
   }
 }

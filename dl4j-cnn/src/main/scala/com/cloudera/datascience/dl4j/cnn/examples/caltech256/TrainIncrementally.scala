@@ -1,13 +1,12 @@
 package com.cloudera.datascience.dl4j.cnn.examples.caltech256
 
-import java.io.{File, PrintWriter}
+import java.io.File
 
 import scala.collection.JavaConverters._
+import scala.util.Random
 import com.cloudera.datascience.dl4j.cnn.Utils
-import org.apache.log4j.FileAppender
 import org.apache.spark.sql.{Row, SparkSession}
 import org.apache.spark.storage.StorageLevel
-import org.apache.spark.{SparkConf, SparkContext}
 import org.deeplearning4j.api.storage.impl.RemoteUIStatsStorageRouter
 import org.deeplearning4j.nn.api.OptimizationAlgorithm
 import org.deeplearning4j.nn.conf.{LearningRatePolicy, Updater}
@@ -112,17 +111,16 @@ object TrainIncrementally {
   }
 
   def main(args: Array[String]): Unit = {
-    val sparkConf = new SparkConf().setAppName("Train a saved model")
-    val sc = new SparkContext(sparkConf)
-
     // quiet all the logs
     org.apache.log4j.Logger.getRootLogger.setLevel(org.apache.log4j.Level.ERROR)
     val logger4j = org.apache.log4j.LogManager.getLogger(this.getClass)
     logger4j.setLevel(org.apache.log4j.Level.INFO)
     val param = Params.parseArgs(args)
+    val spark = SparkSession.builder().appName("Train a saved model").getOrCreate()
     try {
-      val rng = new scala.util.Random()
-      val spark = SparkSession.builder().getOrCreate()
+      val sc = spark.sparkContext
+      
+      val rng = new Random()
       val restorePath = new File(param.modelPath)
       val restored = ModelSerializer.restoreComputationGraph(restorePath)
       val trainRDD = spark.read.parquet(param.dataPath)
@@ -205,7 +203,7 @@ object TrainIncrementally {
       val locationToSave = new File(param.savePath)
       ModelSerializer.writeModel(model.getNetwork, locationToSave, true)
     } finally {
-      sc.stop()
+      spark.stop()
     }
   }
 

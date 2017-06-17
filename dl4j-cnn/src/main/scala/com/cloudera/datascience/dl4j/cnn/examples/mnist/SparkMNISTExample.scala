@@ -25,7 +25,7 @@ import scala.collection.mutable
   * Simple example demonstrating how to train a neural network from scratch on the classic MNIST
   * dataset.
   */
-object SparkMnistExample {
+object SparkMNISTExample {
 
   private val rate = 0.05
   private val seed = 42
@@ -46,8 +46,8 @@ object SparkMnistExample {
       .appName("DL4J and Spark on MNIST")
       .master("local[*]")
       .getOrCreate()
-    val sc = spark.sparkContext
     try {
+      val sc = spark.sparkContext
 
       val trainImgs = load(Paths.get(trainFeaturesPath), Paths.get(trainLabelsPath))
       val testImgs = load(Paths.get(testFeaturesPath), Paths.get(testLabelsPath))
@@ -63,7 +63,7 @@ object SparkMnistExample {
         .build()
       val model = new SparkDl4jMultiLayer(sc, nnConf, tm)
       model.setListeners(new ScoreIterationListener(5))
-      (0 until numEpochs).foreach { i =>
+      (0 until numEpochs).foreach { _ =>
         model.fit(trainRDD)
       }
 
@@ -72,7 +72,7 @@ object SparkMnistExample {
       val stats = evaluation.stats()
       println(stats)
     } finally {
-      sc.stop()
+      spark.stop()
     }
   }
 

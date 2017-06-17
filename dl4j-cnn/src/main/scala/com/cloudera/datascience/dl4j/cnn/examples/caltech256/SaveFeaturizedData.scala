@@ -5,7 +5,7 @@ import java.io.File
 import com.cloudera.datascience.dl4j.cnn.Utils
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.SparkSession
-import org.apache.spark.{SparkConf, SparkContext}
+import org.apache.spark.SparkContext
 import org.datavec.image.loader.NativeImageLoader
 import org.deeplearning4j.nn.api.Layer
 import org.deeplearning4j.nn.graph.ComputationGraph
@@ -63,12 +63,11 @@ object SaveFeaturizedData {
     val savePath = param.savePath
     val modelPath = param.modelPath
 
-    val sparkConf = new SparkConf().setAppName("Save output of convolutional layers").setMaster("local[*]")
-    val sc = new SparkContext(sparkConf)
-    sc.hadoopConfiguration.set("mapreduce.input.fileinputformat.input.dir.recursive", "true")
+    val spark = SparkSession.builder().master("local[*]").appName("Save output of convolutional layers").getOrCreate()
     val logger = org.apache.log4j.LogManager.getLogger(this.getClass)
     try {
-      val spark = SparkSession.builder().getOrCreate()
+      val sc = spark.sparkContext
+      sc.hadoopConfiguration.set("mapreduce.input.fileinputformat.input.dir.recursive", "true")
       import spark.sqlContext.implicits._
       val vgg16 = modelPath.map { path =>
         val modelFile = new File(path)
@@ -98,7 +97,7 @@ object SaveFeaturizedData {
         df.write.parquet(s"$savePath$dir/")
       }
     } finally {
-      sc.stop()
+      spark.stop()
     }
   }
 
