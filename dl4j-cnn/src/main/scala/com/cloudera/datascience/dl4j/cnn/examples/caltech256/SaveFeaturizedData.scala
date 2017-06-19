@@ -63,7 +63,9 @@ object SaveFeaturizedData {
     val savePath = param.savePath
     val modelPath = param.modelPath
 
-    val spark = SparkSession.builder().master("local[*]").appName("Save output of convolutional layers").getOrCreate()
+    val spark = SparkSession.builder()
+      .appName("Save output of convolutional layers")
+      .getOrCreate()
     val logger = org.apache.log4j.LogManager.getLogger(this.getClass)
     try {
       val sc = spark.sparkContext
@@ -89,7 +91,7 @@ object SaveFeaturizedData {
       val (_, unfrozen) = splitModelAt(param.outputLayer, vgg16)
       val choppedGraph = Utils.removeLayer(vgg16, param.outputLayer, unfrozen)
 
-      Seq("valid").foreach { dir =>
+      Seq("train", "test", "valid").foreach { dir =>
         val predictions = featurizeJpegs(sc, s"$imagePath$dir/", numClasses, choppedGraph)
         val df = predictions.map { ds =>
           (Nd4j.toByteArray(ds.getFeatureMatrix), Nd4j.toByteArray(ds.getLabels))

@@ -9,18 +9,6 @@ mvn -Pspark-deploy clean package
 
 ### Set up files on edge node.
 
-On Mac OSX:
-
-````
-curl -L -O http://www.vision.caltech.edu/Image_Datasets/Caltech256/256_ObjectCategories.tar
-tar -xf 256_ObjectCategories.tar
-mkdir -p 256_ObjectCategories/train 256_ObjectCategories/test 256_ObjectCategories/valid
-find -E ./256_ObjectCategories/ -type f -regex ".*/[0-9]{3}\..+" -print | gshuf | head -n 5000 | xargs -I {} mv {} ./256_ObjectCategories/valid/
-find -E ./256_ObjectCategories/ -type f -regex ".*/[0-9]{3}\..+" -print | gshuf | head -n 6000 | xargs -I {} mv {} ./256_ObjectCategories/test/
-find -E ./256_ObjectCategories/ -type f -regex ".*/[0-9]{3}\..+" -print | xargs -I {} mv {} ./256_ObjectCategories/train/
-find -E ./256_ObjectCategories/ -type d -regex ".*/[0-9]{3}\..+" -delete
-````
-
 On Linux:
 
 ````
@@ -150,3 +138,11 @@ dl4j-cnn-1.0.0-jar-with-dependencies.jar \
 --updater NESTEROVS
 ````
 
+## Reference
+
+The following examples from [dl4j-examples](https://github.com/deeplearning4j/dl4j-examples)
+were helpful references for the transfer learning and MNIST exercise:
+
+* [MNIST](https://github.com/deeplearning4j/dl4j-examples/blob/master/dl4j-spark-examples/dl4j-spark/src/main/java/org/deeplearning4j/mlp/MnistMLPExample.java)
+* [VGG Transfer Learning](https://github.com/deeplearning4j/dl4j-examples/blob/master/dl4j-examples/src/main/java/org/deeplearning4j/examples/transferlearning/vgg16/EditAtBottleneckOthersFrozen.java)
+* [Spark VGG Transfer](https://github.com/deeplearning4j/dl4j-examples/blob/master/dl4j-spark-examples/dl4j-spark/src/main/java/org/deeplearning4j/transferlearning/vgg16/FitFromFeaturized.java)
