@@ -7,15 +7,15 @@
   <parent>
     <groupId>com.cloudera.datascience</groupId>
     <artifactId>dl4j-cnn-parent</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>1.0.0</version>
   </parent>
 
   <artifactId>dl4j-cnn</artifactId>
-  <version>1.0.0-SNAPSHOT</version>
+  <version>1.0.0</version>
   <packaging>jar</packaging>
 
   <properties>
-    <spark.version>2.1.0</spark.version>
+    <spark.version>2.1.1</spark.version>
     <spark.deps.scope>compile</spark.deps.scope>
     <dl4j.spark.version>${dl4j.version}_spark_2</dl4j.spark.version>
     <nd4j.version>${dl4j.version}</nd4j.version>
@@ -87,19 +87,16 @@
       <groupId>org.deeplearning4j</groupId>
       <artifactId>deeplearning4j-core</artifactId>
       <version>${dl4j.version}</version>
-      <scope>${spark.deps.scope}</scope>
     </dependency>
     <dependency>
       <groupId>org.deeplearning4j</groupId>
       <artifactId>deeplearning4j-nn</artifactId>
       <version>${dl4j.version}</version>
-      <scope>${spark.deps.scope}</scope>
     </dependency>
     <dependency>
       <groupId>org.deeplearning4j</groupId>
       <artifactId>dl4j-spark_${scala.minor.version}</artifactId>
       <version>${dl4j.spark.version}</version>
-      <scope>${spark.deps.scope}</scope>
     </dependency>
     <dependency>
       <groupId>org.deeplearning4j</groupId>
@@ -112,39 +109,33 @@
       <groupId>org.nd4j</groupId>
       <artifactId>nd4j-native-platform</artifactId>
       <version>${nd4j.version}</version>
-      <scope>${spark.deps.scope}</scope>
     </dependency>
     <dependency>
       <groupId>org.nd4j</groupId>
       <artifactId>nd4j-native</artifactId>
       <version>${nd4j.version}</version>
-      <scope>${spark.deps.scope}</scope>
     </dependency>
     <dependency>
       <groupId>org.nd4j</groupId>
       <artifactId>nd4j-api</artifactId>
       <version>${nd4j.version}</version>
-      <scope>${spark.deps.scope}</scope>
     </dependency>
     <dependency>
       <groupId>org.nd4j</groupId>
       <artifactId>nd4j-kryo_${scala.minor.version}</artifactId>
       <version>${nd4j.version}</version>
-      <scope>${spark.deps.scope}</scope>
     </dependency>
 
     <dependency>
       <groupId>org.datavec</groupId>
       <artifactId>datavec-api</artifactId>
       <version>${datavec.version}</version>
-      <scope>${spark.deps.scope}</scope>
     </dependency>
 
     <dependency>
       <groupId>org.datavec</groupId>
       <artifactId>datavec-spark_${scala.minor.version}</artifactId>
       <version>${datavec.spark.version}</version>
-      <scope>${spark.deps.scope}</scope>
     </dependency>
 
     <!-- Image processing -->
@@ -161,7 +152,7 @@
     <profile>
       <id>spark-deploy</id>
       <properties>
-        <spark.deps.scope>compile</spark.deps.scope>
+        <spark.deps.scope>provided</spark.deps.scope>
       </properties>
     </profile>
     <profile>

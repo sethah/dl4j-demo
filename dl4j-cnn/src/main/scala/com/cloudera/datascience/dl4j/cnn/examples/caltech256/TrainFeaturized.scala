@@ -3,14 +3,14 @@ package com.cloudera.datascience.dl4j.cnn.examples.caltech256
 import java.io.File
 
 import scala.collection.JavaConverters._
+import scala.util.Random
 import com.cloudera.datascience.dl4j.cnn.Utils
 import org.apache.spark.sql.{Row, SparkSession}
 import org.apache.spark.storage.StorageLevel
-import org.apache.spark.{SparkConf, SparkContext}
 import org.deeplearning4j.api.storage.impl.RemoteUIStatsStorageRouter
 import org.deeplearning4j.nn.api.OptimizationAlgorithm
 import org.deeplearning4j.nn.conf.layers.{BatchNormalization, DenseLayer, DropoutLayer, OutputLayer}
-import org.deeplearning4j.nn.conf.{ComputationGraphConfiguration, LearningRatePolicy, NeuralNetConfiguration, Updater}
+import org.deeplearning4j.nn.conf.{ComputationGraphConfiguration, NeuralNetConfiguration, Updater}
 import org.deeplearning4j.nn.graph.ComputationGraph
 import org.deeplearning4j.nn.weights.WeightInit
 import org.deeplearning4j.spark.api.RDDTrainingApproach
@@ -23,7 +23,6 @@ import org.nd4j.linalg.dataset.DataSet
 import org.nd4j.linalg.factory.Nd4j
 import org.nd4j.linalg.lossfunctions.LossFunctions.LossFunction
 import scopt.OptionParser
-
 
 /**
  * Trains a single layer dense neural network on input data that has been featurized by the
@@ -118,11 +117,10 @@ object TrainFeaturized {
   }
 
   def main(args: Array[String]): Unit = {
-    val sparkConf = new SparkConf().setAppName("Train a saved model")
-    val sc = new SparkContext(sparkConf)
+    val spark = SparkSession.builder().appName("Train a saved model").getOrCreate()
     try {
-      val spark = SparkSession.builder().getOrCreate()
-      val rng = new scala.util.Random()
+      val sc = spark.sparkContext
+      val rng = new Random()
       org.apache.log4j.Logger.getRootLogger.setLevel(org.apache.log4j.Level.ERROR)
       val logger4j = org.apache.log4j.LogManager.getLogger(this.getClass)
       logger4j.setLevel(org.apache.log4j.Level.INFO)
@@ -196,7 +194,7 @@ object TrainFeaturized {
       }
 
     } finally {
-      sc.stop()
+      spark.stop()
     }
 }
 

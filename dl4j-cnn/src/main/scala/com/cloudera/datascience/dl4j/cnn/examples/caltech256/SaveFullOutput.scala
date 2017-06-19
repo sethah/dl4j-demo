@@ -4,7 +4,6 @@ import java.io.File
 
 import com.cloudera.datascience.dl4j.cnn.Utils
 import org.apache.spark.sql.{Row, SparkSession}
-import org.apache.spark.{SparkConf, SparkContext}
 import org.deeplearning4j.nn.graph.ComputationGraph
 import org.deeplearning4j.nn.transferlearning.{FineTuneConfiguration, TransferLearning, TransferLearningHelper}
 import org.deeplearning4j.util.ModelSerializer
@@ -50,28 +49,30 @@ object SaveFullOutput {
 
   def main(args: Array[String]): Unit = {
     val param = Params.parseArgs(args)
-    val sparkConf = new SparkConf().setAppName("Featurize VGG dense layers")
-    val sc = new SparkContext(sparkConf)
-    val spark = SparkSession.builder().getOrCreate()
-    import spark.sqlContext.implicits._
+    val spark = SparkSession.builder().appName("Featurize VGG dense layers").getOrCreate()
+    try {
+      import spark.sqlContext.implicits._
 
-    val modelFile = new File(param.modelPath)
-    val vgg16 = ModelSerializer.restoreComputationGraph(modelFile)
-    val data = spark.read.parquet(param.dataPath)
-      .rdd
-      .map { case Row(f: Array[Byte], l: Array[Byte]) =>
-        new DataSet(Nd4j.fromByteArray(f), Nd4j.fromByteArray(l))
+      val modelFile = new File(param.modelPath)
+      val vgg16 = ModelSerializer.restoreComputationGraph(modelFile)
+      val data = spark.read.parquet(param.dataPath)
+        .rdd
+        .map { case Row(f: Array[Byte], l: Array[Byte]) =>
+          new DataSet(Nd4j.fromByteArray(f), Nd4j.fromByteArray(l))
+        }
+      val model = param.lastLayer match {
+        case "predictions" => convToPredictions(vgg16)
+        case "fc2" => convToFC2(vgg16)
       }
-    val model = param.lastLayer match {
-      case "predictions" => convToPredictions(vgg16)
-      case "fc2" => convToFC2(vgg16)
-    }
 
-    val finalOutput = Utils.getPredictions(data, model, sc)
-    val df = finalOutput.map { ds =>
-      (Nd4j.toByteArray(ds.getFeatureMatrix), Nd4j.toByteArray(ds.getLabels))
-    }.toDF()
-    df.write.parquet(param.savePath)
+      val finalOutput = Utils.getPredictions(data, model, spark.sparkContext)
+      val df = finalOutput.map { ds =>
+        (Nd4j.toByteArray(ds.getFeatureMatrix), Nd4j.toByteArray(ds.getLabels))
+      }.toDF()
+      df.write.parquet(param.savePath)
+    } finally {
+      spark.stop()
+    }
   }
 
   private def convToFC2(vgg: ComputationGraph): ComputationGraph = {

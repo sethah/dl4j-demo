@@ -2,8 +2,7 @@
 
 ````
 cd [wherever this repo is]
-mvn clean package
-zip -d dl4j-ui/target/dl4j-ui-1.0.0-SNAPSHOT-jar-with-dependencies.jar META-INF/*.RSA META-INF/*.DSA META-INF/*.SF
+mvn -Pspark-deploy clean package
 ````
 
 ## Deployment
@@ -13,28 +12,28 @@ zip -d dl4j-ui/target/dl4j-ui-1.0.0-SNAPSHOT-jar-with-dependencies.jar META-INF/
 On Mac OSX:
 
 ````
-curl -L -o 256_ObjectCategories.tar http://www.vision.caltech.edu/Image_Datasets/Caltech256/256_ObjectCategories.tar
+curl -L -O http://www.vision.caltech.edu/Image_Datasets/Caltech256/256_ObjectCategories.tar
 tar -xf 256_ObjectCategories.tar
-mkdir 256_ObjectCategories/train 256_ObjectCategories/test 256_ObjectCategories/valid
-find -E ./256_ObjectCategories/ -type f -regex ".*/[0-9][0-9][0-9]\..+" -print | gshuf | head -n 5000 | xargs -I {} mv {} ./256_ObjectCategories/valid/
-find -E ./256_ObjectCategories/ -type f -regex ".*/[0-9][0-9][0-9]\..+" -print | gshuf | head -n 6000 | xargs -I {} mv {} ./256_ObjectCategories/test/
-find -E ./256_ObjectCategories/ -type f -regex ".*/[0-9][0-9][0-9]\..+" -print | xargs -I {} mv {} ./256_ObjectCategories/train/
-find -E ./256_ObjectCategories/ -type d -regex ".*/[0-9][0-9][0-9]\..+" -delete
+mkdir -p 256_ObjectCategories/train 256_ObjectCategories/test 256_ObjectCategories/valid
+find -E ./256_ObjectCategories/ -type f -regex ".*/[0-9]{3}\..+" -print | gshuf | head -n 5000 | xargs -I {} mv {} ./256_ObjectCategories/valid/
+find -E ./256_ObjectCategories/ -type f -regex ".*/[0-9]{3}\..+" -print | gshuf | head -n 6000 | xargs -I {} mv {} ./256_ObjectCategories/test/
+find -E ./256_ObjectCategories/ -type f -regex ".*/[0-9]{3}\..+" -print | xargs -I {} mv {} ./256_ObjectCategories/train/
+find -E ./256_ObjectCategories/ -type d -regex ".*/[0-9]{3}\..+" -delete
 ````
 
 On Linux:
 
 ````
-curl -L -o 256_ObjectCategories.tar http://www.vision.caltech.edu/Image_Datasets/Caltech256/256_ObjectCategories.tar
+curl -L -O http://www.vision.caltech.edu/Image_Datasets/Caltech256/256_ObjectCategories.tar
 tar -xf 256_ObjectCategories.tar
-mkdir 256_ObjectCategories/train 256_ObjectCategories/test 256_ObjectCategories/valid
-find ./256_ObjectCategories/ -regextype posix-extended -type f -regex ".*/[0-9][0-9][0-9]\..+" -print | shuf | head -n 5000 | xargs -I {} mv {} ./256_ObjectCategories/valid/
-find ./256_ObjectCategories/ -regextype posix-extended -type f -regex ".*/[0-9][0-9][0-9]\..+" -print | shuf | head -n 6000 | xargs -I {} mv {} ./256_ObjectCategories/test/
-find ./256_ObjectCategories/ -regextype posix-extended -type f -regex ".*/[0-9][0-9][0-9]\..+" -print | xargs -I {} mv {} ./256_ObjectCategories/train/
-find ./256_ObjectCategories/ -regextype posix-extended -type d -regex ".*/[0-9][0-9][0-9]\..+" -delete
+mkdir -p 256_ObjectCategories/train 256_ObjectCategories/test 256_ObjectCategories/valid
+find ./256_ObjectCategories/ -regextype posix-extended -type f -regex ".*/[0-9]{3}\..+" -print | shuf | head -n 5000 | xargs -I {} mv {} ./256_ObjectCategories/valid/
+find ./256_ObjectCategories/ -regextype posix-extended -type f -regex ".*/[0-9]{3}\..+" -print | shuf | head -n 6000 | xargs -I {} mv {} ./256_ObjectCategories/test/
+find ./256_ObjectCategories/ -regextype posix-extended -type f -regex ".*/[0-9]{3}\..+" -print | xargs -I {} mv {} ./256_ObjectCategories/train/
+find ./256_ObjectCategories/ -regextype posix-extended -type d -regex ".*/[0-9]{3}\..+" -delete
 ````
 
-Save to HDFS.
+Copy to HDFS.
 
 ````
 hadoop fs -put ./256_ObjectCategories
@@ -43,13 +42,13 @@ hadoop fs -put ./256_ObjectCategories
 ### Copy app to edge node.
 
 ````
-scp dl4j-cnn/target/dl4j-cnn-1.0.0-SNAPSHOT-jar-with-dependencies.jar [cluster]:
+scp dl4j-cnn/target/dl4j-cnn-1.0.0-jar-with-dependencies.jar [cluster]:
 ````
 
-If using webui:
+If using the web UI:
 
 ````
-scp dl4j-ui/target/dl4j-ui-1.0.0-SNAPSHOT-jar-with-dependencies.jar [cluster]:
+scp dl4j-ui/target/dl4j-ui-1.0.0-jar-with-dependencies.jar [cluster]:
 ````
 
 ### Featurize the input data.
@@ -60,11 +59,13 @@ scp dl4j-ui/target/dl4j-ui-1.0.0-SNAPSHOT-jar-with-dependencies.jar [cluster]:
 been featurized, instructions are below.
 
 ````
+GC_FLAGS="-XX:+UseG1GC -XX:MaxGCPauseMillis=200 -Dorg.bytedeco.javacpp.maxretries=100 -Dorg.bytedeco.javacpp.maxbytes=25000000000"
+BIGTOP_JAVA_MAJOR=8 # ensures Java 8 on distros like CDH
 spark2-submit \
 --master yarn \
 --deploy-mode client \
---conf spark.driver.extraJavaOptions="-XX:+UseG1GC -XX:MaxGCPauseMillis=200 -Dorg.bytedeco.javacpp.maxretries=100 -Dorg.bytedeco.javacpp.maxbytes=25000000000" \
---conf spark.executor.extraJavaOptions="-XX:+UseG1GC -XX:MaxGCPauseMillis=200 -Dorg.bytedeco.javacpp.maxretries=100 -Dorg.bytedeco.javacpp.maxbytes=25000000000" \
+--conf spark.driver.extraJavaOptions="$GC_FLAGS" \
+--conf spark.executor.extraJavaOptions="$GC_FLAGS" \
 --conf spark.locality.wait=0 \
 --conf spark.driver.maxResultSize=10g \
 --conf spark.yarn.executor.memoryOverhead=27g \
@@ -77,7 +78,7 @@ spark2-submit \
 --driver-memory 10g \
 --num-executors=5 \
 --class "com.cloudera.datascience.dl4j.cnn.examples.caltech256.SaveFeaturizedData" \
-dl4j-cnn-1.0.0-SNAPSHOT-jar-with-dependencies.jar \
+dl4j-cnn-1.0.0-jar-with-dependencies.jar \
 --numClasses 257 \
 --outputLayer fc2 \
 --imagePath hdfs:///path/to/256_ObjectCategories/ \
@@ -93,32 +94,35 @@ here: [Caltech256_FeaturizedFC2](https://storage.googleapis.com/dl4j-256-objectc
 Extract this folder and put it into HDFS.
 
 ````
-tar -xvf 256_ObjectCategories_Featurized_FC2.tar
+curl -L -O https://storage.googleapis.com/dl4j-256-objectcategories/256_ObjectCategories_Featurized_FC2.tar
+tar -xf 256_ObjectCategories_Featurized_FC2.tar
 hadoop fs -put 256_ObjectCategories_Featurized_FC2/
 ````
 
 ### Train a model
 
-#### \[Optional\] Start the web ui
+#### \[Optional\] Start the web UI
 
-Specify the port via -p \[PORT\]
+Specify the port via `-p [PORT]`
 
 ````
-java -jar dl4j-ui-1.0.0-SNAPSHOT-jar-with-dependencies.jar -p 9000
+java -jar dl4j-ui-1.0.0-jar-with-dependencies.jar -p 9000
 
 ````
 
 Once you have the data featurized and saved in HDFS, you can train a model.
 
-*Note*: Substitute the IP address of your machine in the command below in order to view the ui.
+*Note*: Substitute the IP address of your machine in the command below in order to view the UI.
 Optionally, don't provide a `--ui` argument to skip it entirely.
 
 ````
-BIGTOP_JAVA_MAJOR=8 spark2-submit \
+GC_FLAGS="-XX:+UseG1GC -XX:MaxGCPauseMillis=200 -Dorg.bytedeco.javacpp.maxretries=100 -Dorg.bytedeco.javacpp.maxbytes=13000000000"
+BIGTOP_JAVA_MAJOR=8 # ensures Java 8 on distros like CDH
+spark2-submit \
 --master yarn \
 --deploy-mode client \
---conf spark.driver.extraJavaOptions="-XX:+UseG1GC -XX:MaxGCPauseMillis=200 -Dorg.bytedeco.javacpp.maxretries=100 -Dorg.bytedeco.javacpp.maxbytes=13000000000" \
---conf spark.executor.extraJavaOptions="-XX:+UseG1GC -XX:MaxGCPauseMillis=200 -Dorg.bytedeco.javacpp.maxretries=100 -Dorg.bytedeco.javacpp.maxbytes=13000000000" \
+--conf spark.driver.extraJavaOptions="$GC_FLAGS" \
+--conf spark.executor.extraJavaOptions="$GC_FLAGS" \
 --conf spark.locality.wait=0 \
 --conf spark.driver.maxResultSize=10g \
 --conf spark.yarn.executor.memoryOverhead=15g \
@@ -131,7 +135,7 @@ BIGTOP_JAVA_MAJOR=8 spark2-submit \
 --driver-memory 10g \
 --num-executors=5 \
 --class "com.cloudera.datascience.dl4j.cnn.examples.caltech256.TrainFeaturized" \
-dl4j-cnn-1.0.0-SNAPSHOT-jar-with-dependencies.jar \
+dl4j-cnn-1.0.0-jar-with-dependencies.jar \
 --inputLayer fc2 \
 --train hdfs:///path/to/256_ObjectCategories_Featurized_FC2/train/ \
 --valid hdfs:///path/to/256_ObjectCategories_Featurized_FC2/valid/ \
