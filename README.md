@@ -141,8 +141,7 @@ dl4j-cnn-1.0.0-jar-with-dependencies.jar \
 ## Reference
 
 The following examples from [dl4j-examples](https://github.com/deeplearning4j/dl4j-examples)
-were helpful references for the transfer learning and MNIST exercise:
+were helpful references for the transfer learning:
 
-* [MNIST](https://github.com/deeplearning4j/dl4j-examples/blob/master/dl4j-spark-examples/dl4j-spark/src/main/java/org/deeplearning4j/mlp/MnistMLPExample.java)
 * [VGG Transfer Learning](https://github.com/deeplearning4j/dl4j-examples/blob/master/dl4j-examples/src/main/java/org/deeplearning4j/examples/transferlearning/vgg16/EditAtBottleneckOthersFrozen.java)
 * [Spark VGG Transfer](https://github.com/deeplearning4j/dl4j-examples/blob/master/dl4j-spark-examples/dl4j-spark/src/main/java/org/deeplearning4j/transferlearning/vgg16/FitFromFeaturized.java)
